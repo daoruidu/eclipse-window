@@ -1,0 +1,1954 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#05080b" />
+    <title>日蚀窗口 · ECLIPSE WINDOW</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #05080b;
+        color: #f1f0e9;
+      }
+      body {
+        font-family: Arial, "Microsoft YaHei", sans-serif;
+        font-size: 12px;
+      }
+      button,
+      input {
+        font: inherit;
+      }
+      button {
+        color: inherit;
+        cursor: pointer;
+      }
+      button:focus-visible,
+      input:focus-visible {
+        outline: 2px solid #9edfe9;
+        outline-offset: 5px;
+      }
+      #scene {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+        cursor: grab;
+      }
+      #scene:active {
+        cursor: grabbing;
+      }
+      .frame {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        box-shadow: inset 0 0 120px #0003;
+      }
+      .top {
+        position: absolute;
+        top: 35px;
+        left: 42px;
+        right: 42px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        pointer-events: none;
+        transition: opacity 0.7s;
+      }
+      .wordmark {
+        letter-spacing: 0.28em;
+        font-size: 11px;
+      }
+      .top-right {
+        display: flex;
+        gap: 25px;
+        align-items: center;
+        pointer-events: auto;
+      }
+      .text-button {
+        background: transparent;
+        border: 0;
+        padding: 8px 0;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        opacity: 0.7;
+      }
+      .text-button:hover {
+        opacity: 1;
+      }
+      .hero {
+        position: absolute;
+        left: 8.5%;
+        bottom: 24%;
+        max-width: 650px;
+        transition:
+          opacity 1s,
+          transform 1s;
+        pointer-events: none;
+      }
+      .eyebrow {
+        font-size: 10px;
+        letter-spacing: 0.36em;
+        color: #a8c4d0;
+        margin-bottom: 24px;
+      }
+      .hero h1 {
+        font-family: "Baskervville", "Songti SC", "SimSun", serif;
+        font-weight: 400;
+        letter-spacing: 0.15em;
+        font-size: clamp(44px, 6.5vw, 94px);
+        line-height: 1.2;
+        margin: 0 0 21px;
+        text-shadow: 0 2px 35px #0008;
+      }
+      .hero p {
+        font-size: 13px;
+        letter-spacing: 0.26em;
+        color: #bbc8cc;
+        line-height: 2;
+        margin: 0;
+      }
+      .enter {
+        pointer-events: auto;
+        margin-top: 36px;
+        display: inline-flex;
+        gap: 30px;
+        align-items: center;
+        background: #ebeee6;
+        color: #11212b;
+        border: 0;
+        padding: 16px 22px;
+        font-size: 12px;
+        letter-spacing: 0.15em;
+        transition: background 0.2s;
+      }
+      .enter:hover {
+        background: #bdefff;
+      }
+      .enter span {
+        font-size: 18px;
+        line-height: 1;
+      }
+      .hero small {
+        display: block;
+        font-size: 10px;
+        color: #a5bac0;
+        margin-top: 17px;
+        letter-spacing: 0.12em;
+      }
+      .playing .hero {
+        opacity: 0;
+        transform: translateY(12px);
+        pointer-events: none;
+      }
+      .playing .enter {
+        pointer-events: none;
+      }
+      .caption {
+        position: absolute;
+        bottom: 18%;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 1.7s;
+        text-shadow: 0 1px 20px #000;
+      }
+      .caption.visible {
+        opacity: 1;
+      }
+      .caption .zh {
+        font-family: "Songti SC", "SimSun", serif;
+        font-size: clamp(18px, 2vw, 29px);
+        letter-spacing: 0.3em;
+      }
+      .caption .en {
+        font-size: 10px;
+        letter-spacing: 0.24em;
+        margin-top: 15px;
+        color: #b8c8ce;
+      }
+      .controls {
+        position: absolute;
+        bottom: 27px;
+        left: 42px;
+        right: 42px;
+        transition: opacity 0.6s;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .transport {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+      }
+      .left-controls,
+      .right-controls {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+      }
+      .control {
+        background: transparent;
+        border: 0;
+        padding: 4px 0;
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        opacity: 0.78;
+      }
+      .control:hover {
+        opacity: 1;
+      }
+      .control.active {
+        color: #a6e6ff;
+        opacity: 1;
+      }
+      #clock {
+        font-variant-numeric: tabular-nums;
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        color: #93a7b1;
+      }
+      .seek {
+        appearance: none;
+        width: 100%;
+        height: 2px;
+        margin: 0;
+        background: #ffffff26;
+        cursor: pointer;
+        accent-color: #a0daed;
+      }
+      .seek::-webkit-slider-thumb {
+        appearance: none;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #cedfe5;
+      }
+      .hint {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 100px;
+        text-align: center;
+        color: #b1c6cf80;
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        pointer-events: none;
+        transition: opacity 0.5s;
+      }
+      .clean .top,
+      .clean .controls,
+      .clean .hint {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .clean .top-right {
+        pointer-events: none;
+      }
+      .toast {
+        position: absolute;
+        left: 50%;
+        bottom: 130px;
+        transform: translateX(-50%);
+        padding: 12px 18px;
+        background: #0b1820df;
+        border: 1px solid #54758155;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+        white-space: nowrap;
+      }
+      .toast.show {
+        opacity: 1;
+      }
+      .error {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: #061018;
+        padding: 30px;
+        line-height: 1.9;
+      }
+      .error.show {
+        display: flex;
+      }
+      .error div {
+        max-width: 500px;
+      }
+      .error strong {
+        font-size: 22px;
+      }
+      #error-detail {
+        color: #a7bdc6;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      .recording #record {
+        color: #ffb5a4;
+      }
+      .loading {
+        position: absolute;
+        right: 43px;
+        bottom: 117px;
+        color: #9db2bc;
+        letter-spacing: 0.1em;
+        transition: opacity 0.5s;
+      }
+      .ready .loading {
+        opacity: 0;
+      }
+      .quiet .hint {
+        opacity: 0;
+      }
+      @media (max-width: 650px) {
+        .top {
+          top: 22px;
+          left: 22px;
+          right: 22px;
+        }
+        .controls {
+          left: 22px;
+          right: 22px;
+          bottom: 22px;
+        }
+        .hero {
+          left: 8%;
+          bottom: 29%;
+        }
+        .hero h1 {
+          font-size: 49px;
+        }
+        .top-right {
+          gap: 16px;
+        }
+        .left-controls,
+        .right-controls {
+          gap: 15px;
+        }
+        .right-controls #record {
+          display: none;
+        }
+        .hint {
+          bottom: 106px;
+          font-size: 9px;
+        }
+        .caption {
+          bottom: 23%;
+        }
+        .wordmark {
+          font-size: 9px;
+          letter-spacing: 0.2em;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas
+      id="scene"
+      aria-label="日蚀窗口，实时渲染的冰冻行星和推进阵列"
+    ></canvas>
+    <div class="frame"></div>
+    <header class="top">
+      <div class="wordmark">ECLIPSE WINDOW</div>
+      <div class="top-right">
+        <button class="text-button" id="quality" title="切换渲染清晰度">
+          画质 · 自动</button
+        ><button class="text-button" id="fullscreen" title="全屏 F">
+          全屏 ↗
+        </button>
+      </div>
+    </header>
+    <section class="hero">
+      <div class="eyebrow">A WORLD IN DEPARTURE</div>
+      <h1>日蚀窗口</h1>
+      <p>穿过漫长的夜。带着我们的世界。</p>
+      <button class="enter" id="enter">进入日蚀 <span>↗</span></button
+      ><small>42 秒实时演算 · 建议佩戴耳机</small>
+    </section>
+    <div class="caption" id="caption">
+      <div class="zh">我们带着家，离开。</div>
+      <div class="en">WE TAKE OUR WORLD WITH US.</div>
+    </div>
+    <div class="hint" id="hint">
+      拖动环绕 · 滚轮靠近 · 空格暂停 · H 隐藏界面
+    </div>
+    <div class="controls">
+      <input
+        id="seek"
+        class="seek"
+        type="range"
+        min="0"
+        max="42"
+        step="0.01"
+        value="0"
+        aria-label="时间轴"
+      />
+      <div class="transport">
+        <div class="left-controls">
+          <button class="control" id="play">播放</button
+          ><button class="control" id="restart" title="从地表重新出发 R">
+            重播</button
+          ><span id="clock">00:00 / 00:42</span>
+        </div>
+        <div class="right-controls">
+          <button class="control" id="sound" aria-pressed="false">
+            声音 · 关</button
+          ><button class="control" id="record">录制影片</button
+          ><button class="control" id="hide" title="按 H 恢复界面">
+            隐藏界面
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="loading">正在建立世界</div>
+    <div class="toast" id="toast" role="status"></div>
+    <div class="error" id="error">
+      <div>
+        <strong>这个世界需要 WebGL 2</strong>
+        <p id="error-detail">请用启用硬件加速的新版 Chrome 或 Edge 打开。</p>
+        <button class="enter" onclick="location.reload()">重新载入 ↗</button>
+      </div>
+    </div>
+    <script>
+      "use strict";
+      // Everything is generated locally, including cached terrain maps and audio.
+      // No network requests, imported artwork, model files or sound files.
+      const canvas = document.getElementById("scene");
+      const gl = canvas.getContext("webgl2", {
+        alpha: false,
+        antialias: false,
+        powerPreference: "high-performance",
+        preserveDrawingBuffer: true,
+      });
+      const ui = Object.fromEntries(
+        [
+          "enter",
+          "play",
+          "restart",
+          "seek",
+          "clock",
+          "sound",
+          "record",
+          "hide",
+          "quality",
+          "fullscreen",
+          "caption",
+          "toast",
+        ].map((id) => [id, document.getElementById(id)]),
+      );
+      function showError(message) {
+        document.getElementById("error-detail").textContent = message;
+        document.getElementById("error").classList.add("show");
+      }
+      function toast(message) {
+        ui.toast.textContent = message;
+        ui.toast.classList.add("show");
+        clearTimeout(toast.timer);
+        toast.timer = setTimeout(() => ui.toast.classList.remove("show"), 3600);
+      }
+      if (!gl) {
+        showError("请用启用硬件加速的新版 Chrome 或 Edge 打开。");
+      } else {
+        try {
+          main();
+        } catch (error) {
+          console.error(error);
+          showError(error.message);
+        }
+      }
+
+      function main() {
+        const DURATION = 42;
+        const hdr = !!gl.getExtension("EXT_color_buffer_float");
+        const state = {
+          time: 0,
+          preview: true,
+          playing: false,
+          muted: true,
+          quality: 0,
+          scale: 1,
+          dragging: false,
+          yaw: 0,
+          pitch: 0,
+          zoom: 0,
+          recording: false,
+          disposed: false,
+        };
+        const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+        const mix = (a, b, t) => a + (b - a) * t;
+        const smooth = (a, b, x) => {
+          const t = clamp((x - a) / (b - a), 0, 1);
+          return t * t * (3 - 2 * t);
+        };
+        const vadd = (a, b) => a.map((v, i) => v + b[i]);
+        const vsub = (a, b) => a.map((v, i) => v - b[i]);
+        const vmul = (a, k) => a.map((v) => v * k);
+        const dot = (a, b) => a.reduce((s, v, i) => s + v * b[i], 0);
+        const cross = (a, b) => [
+          a[1] * b[2] - a[2] * b[1],
+          a[2] * b[0] - a[0] * b[2],
+          a[0] * b[1] - a[1] * b[0],
+        ];
+        const norm = (a) => vmul(a, 1 / Math.max(1e-8, Math.hypot(...a)));
+        const vertex = `#version 300 es
+precision highp float;
+out vec2 vUv;
+void main() {
+  vec2 p=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&2));
+  vUv=p;
+  gl_Position=vec4(p*2.-1.,0.,1.);
+}`;
+        const noise = `float hash(float n) {
+  return fract(sin(n)*43758.5453123);
+}
+float hash3(vec3 p) {
+  p=fract(p*.1031);
+  p+=dot(p,p.yzx+33.33);
+  return fract((p.x+p.y)*p.z);
+}
+float noise3(vec3 p) {
+  vec3 i=floor(p),f=fract(p);
+  f=f*f*(3.-2.*f);
+  return mix(mix(mix(hash3(i),hash3(i+vec3(1,0,0)),f.x),mix(hash3(i+vec3(0,1,0)),hash3(i+vec3(1,1,0)),f.x),f.y),mix(mix(hash3(i+vec3(0,0,1)),hash3(i+vec3(1,0,1)),f.x),mix(hash3(i+vec3(0,1,1)),hash3(i+vec3(1,1,1)),f.x),f.y),f.z);
+}
+float fbm(vec3 p) {
+  float v=0.,a=.5;
+  for(int i=0;i<5;i++) {
+    v+=a*noise3(p);
+    p=p*2.03+vec3(7.1,1.7,3.4);
+    a*=.5;
+  }
+  return v;
+}
+vec2 sphere(vec3 ro,vec3 rd,vec3 c,float r) {
+  vec3 oc=ro-c;
+  float b=dot(oc,rd),h=b*b-dot(oc,oc)+r*r;
+  if(h<0.)return vec2(-1.);
+  h=sqrt(h);
+  return vec2(-b-h,-b+h);
+}`;
+        const common = `precision highp float;
+uniform vec2 uResolution;
+uniform float uTime;
+uniform vec3 uEye;
+uniform mat3 uCamera;
+uniform mat4 uVP;
+uniform vec3 uSun;
+uniform float uEclipse;`;
+        const sceneFragment = `#version 300 es
+${common}
+in vec2 vUv;
+out vec4 outColor;
+${noise}
+uniform samplerCube uTerrain;
+uniform samplerCube uGas;
+float terrain(vec3 direction) {
+  return textureLod(uTerrain,direction,0.).r*.25;
+}
+const vec3 GIANT=vec3(-19.,25.,-60.);
+const float GR=33.;
+vec3 rayDirection() {
+  vec2 uv=(gl_FragCoord.xy*2.-uResolution)/uResolution.y;
+  return normalize(uCamera*vec3(uv,-1.65));
+}
+vec3 stars(vec3 rd) {
+  vec3 color=vec3(.0018,.0035,.008);
+  float dust=noise3(rd*4.+vec3(2,3,7));
+  float band=exp(-pow((rd.x*.45+rd.y*.83+rd.z*.26+.12)*4.,2.));
+  color+=vec3(.025,.036,.05)*pow(dust,3.)*band;
+  color+=vec3(.035,.015,.012)*pow(noise3(rd*7.+17.),5.)*band;
+  for(int i=0;i<3;i++) {
+    float scale=140.+float(i)*127.;
+    vec3 p=rd*scale;
+    vec3 cell=floor(p);
+    vec3 center=cell+.15+.7*vec3(hash3(cell+4.),hash3(cell+11.),hash3(cell+39.));
+    float distance=length(p-center);
+    float h=hash3(cell+73.);
+    float star=exp(-distance*distance*(90.+float(i)*35.))*step(.986,h);
+    vec3 tint=mix(vec3(.62,.77,1.),vec3(1.,.76,.5),hash3(cell+19.));
+    color+=tint*star*(.25+hash3(cell+9.)*1.7);
+  }
+  float alignment=max(0.,dot(rd,uSun));
+  float angular=acos(clamp(alignment,-1.,1.));
+  color+=vec3(1.3,.76,.30)*(.0009/(angular*angular+.0006));
+  color+=vec3(6.,4.4,2.5)*(1.-smoothstep(.014,.019,angular));
+  return color;
+}
+vec3 gasSurface(vec3 p,vec3 rd) {
+  vec3 n=normalize(p-GIANT);
+  vec3 q=n;
+  float rotation=uTime*.001;
+  float c=cos(rotation),s=sin(rotation);
+  q.xz=mat2(c,-s,s,c)*q.xz;
+  vec3 col=textureLod(uGas,q,0.).rgb;
+  float light=max(0.,dot(n,normalize(vec3(.8,.3,.5))));
+  float rim=pow(1.-max(0.,dot(n,-rd)),4.);
+  return col*(.012+pow(light,1.4)*.9)+vec3(.25,.13,.06)*rim*(.05+light)*.45;
+}
+vec3 iceSurface(vec3 p,vec3 rd) {
+  vec3 n=normalize(p);
+  vec4 surface=textureLod(uTerrain,n,0.);
+  float coarse=surface.a;
+  vec3 tangent=normalize(cross(n,vec3(.1,1.,.03)));
+  vec3 bitangent=cross(n,tangent);
+  float e=.0018;
+  float h=terrain(n);
+  float bumpStrength=mix(90.,30.,smoothstep(4.,20.,length(uEye-p)));
+  vec3 normal=normalize(n-tangent*(terrain(normalize(n+tangent*e))-h)*bumpStrength-bitangent*(terrain(normalize(n+bitangent*e))-h)*bumpStrength);
+  float grain=noise3(p*270.);
+  normal=normalize(normal+tangent*(grain-.5)*.25+bitangent*(noise3(p*270.+17.)-.5)*.25);
+  float crack=surface.b;
+  vec3 col=mix(vec3(.08,.13,.17),vec3(.55,.64,.65),clamp(surface.g,0.,1.));
+  col*=1.-crack*.77;
+  float sun=max(0.,dot(normal,uSun));
+  float eclipse=mix(1.,.10,uEclipse);
+  float fill=max(0.,dot(normal,normalize(vec3(-.5,.5,.3))));
+  vec3 lit=col*(vec3(.008,.019,.035)+fill*vec3(.08,.13,.17)+sun*eclipse*vec3(1.6,1.12,.7));
+  float spec=pow(max(0.,dot(reflect(-uSun,normal),-rd)),48.);
+  lit+=spec*eclipse*.34;
+  float ignition=smoothstep(10.,16.,uTime);
+  float pattern=pow(max(0.,noise3(n*65.)-.64)*4.,4.);
+  lit+=vec3(.035,.27,.40)*crack*ignition*.018;
+  float groundLight=exp(-length(p.xz-vec2(0.,-.9))*1.3)*smoothstep(12.,13.,uTime);
+  lit+=col*vec3(.12,.6,1.1)*groundLight;
+  float shockAge=uTime-12.35;
+  float shock=exp(-pow((length(p.xz-vec2(0.,-.9))-shockAge*1.8)*8.,2.))*step(0.,shockAge)*exp(-shockAge*1.5);
+  lit+=vec3(.13,.55,.8)*shock*.4;
+  lit+=vec3(1.,.37,.07)*pattern*.06*smoothstep(.4,.7,coarse)*(1.-sun*eclipse);
+  float facing=pow(1.-max(0.,dot(n,-rd)),5.);
+  lit+=vec3(.018,.07,.12)*facing;
+  return lit;
+}
+void main() {
+  vec3 rd=rayDirection();
+  vec3 color=stars(rd);
+  float nearest=1000.;
+  vec2 giantHit=sphere(uEye,rd,GIANT,GR);
+  if(giantHit.x>0.) {
+    nearest=giantHit.x;
+    color=gasSurface(uEye+rd*nearest,rd);
+  }
+  // A tilted, finely banded ring, with the planet casting a real geometric shadow.
+  vec3 ringNormal=normalize(vec3(.1,.93,.35));
+  float denom=dot(rd,ringNormal);
+  if(abs(denom)>.0001) {
+    float t=dot(GIANT-uEye,ringNormal)/denom;
+    vec3 p=uEye+rd*t-GIANT;
+    float r=length(p);
+    if(t>0.&&t<nearest&&r>39.&&r<61.) {
+      float footprint=max(fwidth(r),.0001);
+      float stripes=.52+.20*sin(r*7.)*exp(-footprint*7.)+.14*sin(r*38.)*exp(-footprint*38.)+.08*sin(r*107.)*exp(-footprint*107.);
+      float gap=smoothstep(46.8,47.2,r)*(1.-smoothstep(48.1,48.5,r));
+      float edge=smoothstep(39.,40.,r)*(1.-smoothstep(59.,61.,r));
+      float alpha=clamp(stripes,0.,1.)*edge*(1.-gap*.9)*.85;
+      vec2 sh=sphere(GIANT+p+uSun*.1,uSun,GIANT,GR);
+      float lit=sh.x>0.?.045:.68;
+      vec3 ringColor=mix(vec3(.20,.16,.13),vec3(.68,.51,.38),.5+.25*sin(r*.7)+.15*sin(r*3.));
+      color=mix(color,ringColor*lit,alpha);
+    }
+  }
+  vec2 planet=sphere(uEye,rd,vec3(0),8.18);
+  if(planet.y>0.) {
+    float t=max(0.,planet.x);
+    bool hit=false;
+    for(int i=0;i<75;i++) {
+      vec3 p=uEye+rd*t;
+      float d=length(p)-8.-terrain(normalize(p));
+      if(d<max(.0003,t*.00004)) {
+        hit=true;
+        break;
+      }
+      t+=max(.0002,d*.65);
+      if(t>planet.y||t>nearest)break;
+    }
+    if(hit&&t<nearest) {
+      nearest=t;
+      vec3 p=uEye+rd*t;
+      color=iceSurface(p,rd);
+      float groundFog=1.-exp(-t*.028*exp(-max(0.,length(uEye)-8.3)*2.));
+      color=mix(color,vec3(.025,.065,.095),groundFog*.65);
+    }
+  }
+  // Thin atmosphere, integrated along the ray. The exterior remains transparent.
+  vec2 air=sphere(uEye,rd,vec3(0),8.36);
+  if(air.y>0.) {
+    float a=max(0.,air.x),b=min(nearest,air.y);
+    float stepSize=max(0.,b-a)/12.;
+    vec3 scatter=vec3(0);
+    float optical=0.;
+    for(int i=0;i<12;i++) {
+      vec3 p=uEye+rd*(a+(float(i)+.5)*stepSize);
+      float height=max(0.,length(p)-8.10);
+      float density=exp(-height*19.);
+      float light=.17+max(0.,dot(normalize(p),uSun))*mix(1.,.3,uEclipse);
+      scatter+=vec3(.11,.43,.75)*density*stepSize*light;
+      optical+=density*stepSize;
+    }
+    color=color*exp(-optical*.12)+scatter*.22;
+  }
+  // Lens glint is blocked by the giant, just as the solar disk is.
+  vec2 solarOcclusion=sphere(uEye,uSun,GIANT,GR);
+  if(solarOcclusion.x<0.) {
+    vec3 local=transpose(uCamera)*uSun;
+    if(local.z<0.) {
+      vec2 solar=local.xy/(-local.z)*1.65;
+      vec2 uv=(gl_FragCoord.xy*2.-uResolution)/uResolution.y;
+      vec2 d=uv-solar;
+      float flare=exp(-abs(d.y)*220.)*exp(-abs(d.x)*1.8);
+      color+=vec3(.55,.26,.09)*flare;
+    }
+  }
+  outColor=vec4(color,1.);
+  vec4 clip=uVP*vec4(uEye+rd*nearest,1.);
+  gl_FragDepth=nearest<900.?clamp(clip.z/clip.w*.5+.5,0.,1.):1.;
+}`;
+        function program(vs, fs) {
+          const shaders = [gl.VERTEX_SHADER, gl.FRAGMENT_SHADER].map(
+            (type, i) => {
+              const shader = gl.createShader(type);
+              gl.shaderSource(shader, i ? fs : vs);
+              gl.compileShader(shader);
+              if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                const log = gl.getShaderInfoLog(shader);
+                gl.deleteShader(shader);
+                throw new Error(log);
+              }
+              return shader;
+            },
+          );
+          const p = gl.createProgram();
+          shaders.forEach((s) => gl.attachShader(p, s));
+          gl.linkProgram(p);
+          shaders.forEach((s) => gl.deleteShader(s));
+          if (!gl.getProgramParameter(p, gl.LINK_STATUS))
+            throw new Error(gl.getProgramInfoLog(p));
+          return { program: p, uniforms: new Map() };
+        }
+        function uniform(p, name, value) {
+          let loc = p.uniforms.get(name);
+          if (loc === undefined) {
+            loc = gl.getUniformLocation(p.program, name);
+            p.uniforms.set(name, loc);
+          }
+          if (loc === null) return;
+          if (typeof value === "number") {
+            gl.uniform1f(loc, value);
+            return;
+          }
+          if (value.length === 16) gl.uniformMatrix4fv(loc, false, value);
+          else if (value.length === 9) gl.uniformMatrix3fv(loc, false, value);
+          else if (value.length === 3) gl.uniform3fv(loc, value);
+          else if (value.length === 2) gl.uniform2fv(loc, value);
+        }
+        function textureUniform(p, name, texture, slot) {
+          gl.activeTexture(gl.TEXTURE0 + slot);
+          gl.bindTexture(gl.TEXTURE_2D, texture);
+          gl.uniform1i(gl.getUniformLocation(p.program, name), slot);
+        }
+        const sceneProgram = program(vertex, sceneFragment);
+        // Cache static procedural fields once. Ray marching then uses texture lookups.
+        const cubeFragment = `#version 300 es
+precision highp float;
+in vec2 vUv;
+uniform float uFace;
+uniform float uKind;
+out vec4 outColor;
+${noise}
+void main() {
+  vec2 uv=vUv*2.-1.;
+  vec3 n;
+  if(uFace<.5)n=vec3(1.,-uv.y,-uv.x);
+  else if(uFace<1.5)n=vec3(-1.,-uv.y,uv.x);
+  else if(uFace<2.5)n=vec3(uv.x,1.,uv.y);
+  else if(uFace<3.5)n=vec3(uv.x,-1.,-uv.y);
+  else if(uFace<4.5)n=vec3(uv.x,-uv.y,1.);
+  else n=vec3(-uv.x,-uv.y,-1.);
+  n=normalize(n);
+  if(uKind<.5) {
+    float continents=fbm(n*3.5),mountains=fbm(n*19.);
+    float height=.008+.055*continents+.16*mountains*mountains+.018*noise3(n*115.);
+    float coarse=fbm(n*4.2),detail=fbm(n*110.),rocks=fbm(n*35.),micro=fbm(n*420.);
+    vec3 warped=n*32.+vec3(fbm(n*13.),fbm(n*13.+23.),fbm(n*13.+91.))*2.4;
+    float crack=1.-smoothstep(.006,.024,abs(noise3(warped)-.5));
+    float brightness=smoothstep(.35,.67,coarse+detail*.25)*mix(.26,1.3,rocks)*(.55+micro);
+    outColor=vec4(height*4.,brightness,crack,coarse);
+  }
+  else {
+    vec3 q=n;
+    q.xz=mat2(.96,-.28,.28,.96)*q.xz;
+    float warp=fbm(q*10.),bands=q.y*27.+warp*2.5;
+    float filaments=fbm(vec3(q.x*73.,q.y*250.,q.z*73.)+warp*3.);
+    float w=sin(bands+sin(bands*2.1)*.2);
+    vec3 col=mix(vec3(.12,.085,.064),vec3(.67,.51,.35),smoothstep(-.8,.65,w));
+    col=mix(col,vec3(.84,.78,.64),smoothstep(-.2,1.,sin(bands*1.7+filaments*2.))*.45);
+    col*=.66+filaments*.72;
+    vec2 spot=vec2(atan(q.x,q.z)+.6,q.y+.22)*vec2(2.6,7.);
+    float s=length(spot);
+    col=mix(col,vec3(.52,.20,.095)*(.6+.4*sin(s*22.+warp*9.)),(1.-smoothstep(.2,1.,s))*.68);
+    outColor=vec4(col,1.);
+  }
+}`;
+        const cubeProgram = program(vertex, cubeFragment);
+        function proceduralCube(size, kind) {
+          const texture = gl.createTexture(),
+            framebuffer = gl.createFramebuffer();
+          gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+          for (let face = 0; face < 6; face++)
+            gl.texImage2D(
+              gl.TEXTURE_CUBE_MAP_POSITIVE_X + face,
+              0,
+              hdr ? gl.RGBA16F : gl.RGBA8,
+              size,
+              size,
+              0,
+              gl.RGBA,
+              hdr ? gl.HALF_FLOAT : gl.UNSIGNED_BYTE,
+              null,
+            );
+          gl.texParameteri(
+            gl.TEXTURE_CUBE_MAP,
+            gl.TEXTURE_MIN_FILTER,
+            gl.LINEAR,
+          );
+          gl.texParameteri(
+            gl.TEXTURE_CUBE_MAP,
+            gl.TEXTURE_MAG_FILTER,
+            gl.LINEAR,
+          );
+          for (const axis of [
+            gl.TEXTURE_WRAP_S,
+            gl.TEXTURE_WRAP_T,
+            gl.TEXTURE_WRAP_R,
+          ])
+            gl.texParameteri(gl.TEXTURE_CUBE_MAP, axis, gl.CLAMP_TO_EDGE);
+          gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+          gl.viewport(0, 0, size, size);
+          gl.disable(gl.DEPTH_TEST);
+          gl.useProgram(cubeProgram.program);
+          uniform(cubeProgram, "uKind", kind);
+          for (let face = 0; face < 6; face++) {
+            gl.framebufferTexture2D(
+              gl.FRAMEBUFFER,
+              gl.COLOR_ATTACHMENT0,
+              gl.TEXTURE_CUBE_MAP_POSITIVE_X + face,
+              texture,
+              0,
+            );
+            uniform(cubeProgram, "uFace", face);
+            gl.drawArrays(gl.TRIANGLES, 0, 3);
+          }
+          gl.deleteFramebuffer(framebuffer);
+          gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+          return texture;
+        }
+        const terrainMap = proceduralCube(innerWidth < 700 ? 1024 : 2048, 0);
+        const gasMap = proceduralCube(1024, 1);
+        gl.deleteProgram(cubeProgram.program);
+        const engineVertex = `#version 300 es
+precision highp float;
+layout(location=0)in vec3 aPosition;
+layout(location=1)in vec3 aNormal;
+layout(location=2)in float aMaterial;
+layout(location=3)in vec3 aAnchor;
+layout(location=4)in float aPhase;
+uniform mat4 uVP;
+out vec3 vWorld;
+out vec3 vNormal;
+out vec3 vLocal;
+flat out float vMaterial;
+flat out float vPhase;
+void main() {
+  vec3 up=normalize(aAnchor);
+  vec3 side=normalize(cross(vec3(0,0,1),up));
+  vec3 front=cross(side,up);
+  mat3 basis=mat3(side,up,front);
+  vWorld=aAnchor+basis*aPosition;
+  vNormal=basis*aNormal;
+  vLocal=aPosition;
+  vMaterial=aMaterial;
+  vPhase=aPhase;
+  gl_Position=uVP*vec4(vWorld,1.);
+}`;
+        const engineFragment = `#version 300 es
+${common}
+in vec3 vWorld;
+in vec3 vNormal;
+in vec3 vLocal;
+flat in float vMaterial;
+flat in float vPhase;
+out vec4 outColor;
+${noise}
+void main() {
+  float ignition=smoothstep(10.+vPhase,11.8+vPhase,uTime);
+  vec3 n=normalize(vNormal);
+  float lit=max(0.,dot(n,uSun))*mix(1.,.1,uEclipse);
+  float pattern=step(.8,fract(vLocal.y*170.));
+  vec3 col=vec3(.12,.16,.19)*(vec3(.10,.14,.18)+lit*vec3(1.2,.9,.65));
+  col*=.72+.28*pattern;
+  if(vMaterial>2.5)col=vec3(1.5,.18,.035)*(.4+.6*step(.3,sin(uTime*2.+vPhase)));
+  else if(vMaterial>1.5)col=vec3(.12,1.6,3.4)*(.03+ignition*1.2);
+  else if(vMaterial>.5)col=vec3(.30,.35,.38)*(vec3(.08,.12,.16)+lit);
+  float windows=step(.83,fract(atan(vLocal.z,vLocal.x)*22.))*step(.78,fract(vLocal.y*110.));
+  col+=vec3(.7,.45,.17)*windows*.24;
+  col+=vec3(.05,.35,.58)*ignition*.14*max(0.,n.y);
+  outColor=vec4(col,1.);
+}`;
+        const engineProgram = program(engineVertex, engineFragment);
+        const engineVertices = [];
+        function triangle(a, b, c, material) {
+          const normal = norm(cross(vsub(b, a), vsub(c, a)));
+          for (const p of [a, b, c])
+            engineVertices.push(...p, ...normal, material);
+        }
+        function cylinder(y0, y1, r0, r1, material, segments = 24) {
+          for (let i = 0; i < segments; i++) {
+            const a = (i / segments) * Math.PI * 2,
+              b = ((i + 1) / segments) * Math.PI * 2;
+            const p = [Math.cos(a) * r0, y0, Math.sin(a) * r0],
+              q = [Math.cos(b) * r0, y0, Math.sin(b) * r0],
+              r = [Math.cos(b) * r1, y1, Math.sin(b) * r1],
+              s = [Math.cos(a) * r1, y1, Math.sin(a) * r1];
+            triangle(p, s, q, material);
+            triangle(q, s, r, material);
+            triangle([0, y1, 0], r, s, material);
+          }
+        }
+        cylinder(-0.04, 0.025, 0.21, 0.19, 0, 12);
+        cylinder(0.025, 0.055, 0.19, 0.16, 1, 12);
+        cylinder(0.055, 0.27, 0.13, 0.055, 0, 16);
+        cylinder(0.15, 0.162, 0.102, 0.102, 1);
+        cylinder(0.21, 0.222, 0.083, 0.083, 1);
+        cylinder(0.27, 0.3, 0.06, 0.06, 0);
+        cylinder(0.3, 0.32, 0.066, 0.066, 2);
+        cylinder(0.32, 0.36, 0.063, 0.075, 1);
+        cylinder(0.36, 0.365, 0.052, 0.052, 2);
+        for (let i = 0; i < 8; i++) {
+          const angle = (i * Math.PI) / 4;
+          const radial = [Math.cos(angle), 0, Math.sin(angle)],
+            side = [-Math.sin(angle) * 0.014, 0, Math.cos(angle) * 0.014];
+          const base = vmul(radial, 0.18);
+          base[1] = 0.03;
+          const tip = vmul(radial, 0.052);
+          tip[1] = 0.29;
+          const foot = vmul(radial, 0.07);
+          foot[1] = 0.03;
+          triangle(vadd(base, side), vadd(tip, side), vadd(foot, side), 1);
+          triangle(vsub(base, side), vsub(foot, side), vsub(tip, side), 1);
+          triangle(vsub(base, side), vadd(base, side), vadd(tip, side), 0);
+          triangle(vsub(base, side), vadd(tip, side), vsub(tip, side), 0);
+        }
+        function block(center, size, material) {
+          const corners = [
+            [-1, -1, -1],
+            [1, -1, -1],
+            [1, 1, -1],
+            [-1, 1, -1],
+            [-1, -1, 1],
+            [1, -1, 1],
+            [1, 1, 1],
+            [-1, 1, 1],
+          ].map((p) => p.map((v, i) => center[i] + v * size[i] * 0.5));
+          for (const f of [
+            [0, 3, 2, 1],
+            [4, 5, 6, 7],
+            [0, 4, 7, 3],
+            [1, 2, 6, 5],
+            [3, 7, 6, 2],
+            [0, 1, 5, 4],
+          ]) {
+            triangle(corners[f[0]], corners[f[1]], corners[f[2]], material);
+            triangle(corners[f[0]], corners[f[2]], corners[f[3]], material);
+          }
+        }
+        for (let i = 0; i < 16; i++) {
+          const angle = (i * Math.PI) / 8;
+          const x = Math.cos(angle) * 0.245,
+            z = Math.sin(angle) * 0.245;
+          const height = 0.025 + (i % 3) * 0.012;
+          block([x, 0.015 + height / 2, z], [0.024, height, 0.035], 0);
+          block([x, 0.017 + height, z], [0.012, 0.002, 0.018], 2);
+          if (i % 4 === 0) {
+            block([x, 0.075, z], [0.004, 0.09, 0.004], 1);
+            block([x, 0.123, z], [0.007, 0.005, 0.007], 3);
+          }
+        }
+        const anchors = [];
+        // A golden-angle distribution avoids a visible latitude / longitude grid.
+        anchors.push(0, 8.095, -0.9, 2);
+        for (let i = 0; i < 52; i++) {
+          const y = 0.58 + (0.4 * (i + 0.5)) / 52;
+          const a = i * 2.39996323 + 0.4;
+          const r = Math.sqrt(1 - y * y);
+          const n = [Math.cos(a) * r, y, Math.sin(a) * r];
+          if (Math.hypot(n[0] * 8.1, n[2] * 8.1 + 0.9) < 0.6) continue;
+          anchors.push(...vmul(n, 8.095), ((i * 17) % 31) / 10);
+        }
+        const instanceCount = anchors.length / 4;
+        const instanceBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, instanceBuffer);
+        gl.bufferData(
+          gl.ARRAY_BUFFER,
+          new Float32Array(anchors),
+          gl.STATIC_DRAW,
+        );
+        function instances() {
+          gl.bindBuffer(gl.ARRAY_BUFFER, instanceBuffer);
+          gl.enableVertexAttribArray(3);
+          gl.vertexAttribPointer(3, 3, gl.FLOAT, false, 16, 0);
+          gl.vertexAttribDivisor(3, 1);
+          gl.enableVertexAttribArray(4);
+          gl.vertexAttribPointer(4, 1, gl.FLOAT, false, 16, 12);
+          gl.vertexAttribDivisor(4, 1);
+        }
+        const engineVao = gl.createVertexArray();
+        gl.bindVertexArray(engineVao);
+        const engineBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, engineBuffer);
+        gl.bufferData(
+          gl.ARRAY_BUFFER,
+          new Float32Array(engineVertices),
+          gl.STATIC_DRAW,
+        );
+        for (let i = 0; i < 3; i++) {
+          gl.enableVertexAttribArray(i);
+          gl.vertexAttribPointer(
+            i,
+            i === 2 ? 1 : 3,
+            gl.FLOAT,
+            false,
+            28,
+            i * 12,
+          );
+        }
+        instances();
+        const jetVertex = `#version 300 es
+precision highp float;
+layout(location=0)in vec3 aPosition;
+layout(location=3)in vec3 aAnchor;
+layout(location=4)in float aPhase;
+uniform mat4 uVP;
+uniform float uTime;
+out vec3 vWorld;
+flat out vec3 vAnchor;
+flat out mat3 vBasis;
+flat out float vPhase;
+flat out float vLength;
+void main() {
+  vec3 up=normalize(aAnchor);
+  vec3 side=normalize(cross(vec3(0,0,1),up));
+  vec3 front=cross(side,up);
+  vBasis=mat3(side,up,front);
+  vAnchor=aAnchor;
+  vPhase=aPhase;
+  float ignition=smoothstep(10.+aPhase,11.8+aPhase,uTime);
+  vLength=(4.1+1.1*sin(aPhase*4.))*ignition;
+  vec3 p=aPosition*vec3(.85,vLength,.85)+vec3(0,.365,0);
+  vWorld=aAnchor+vBasis*p;
+  gl_Position=uVP*vec4(vWorld,1.);
+}`;
+        const jetFragment = `#version 300 es
+${common}
+uniform sampler2D uDepth;
+uniform mat4 uInvVP;
+in vec3 vWorld;
+flat in vec3 vAnchor;
+flat in mat3 vBasis;
+flat in float vPhase;
+flat in float vLength;
+out vec4 outColor;
+${noise}
+float erfApprox(float x) {
+  float s=sign(x);
+  x=abs(x);
+  float t=1./(1.+.3275911*x);
+  float polynomial=(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-.284496736)*t+.254829592)*t;
+  return s*(1.-polynomial*exp(-x*x));
+}
+void main() {
+  if(vLength<.01)discard;
+  vec3 rd=normalize(vWorld-uEye);
+  vec3 ro=transpose(vBasis)*(uEye-vAnchor)-vec3(0,.365,0);
+  vec3 dir=transpose(vBasis)*rd;
+  vec3 safeDir=mix(vec3(-1.),vec3(1.),step(vec3(0.),dir))*max(abs(dir),vec3(.000001));
+  vec3 a=(vec3(-.85,0.,-.85)-ro)/safeDir,b=(vec3(.85,vLength,.85)-ro)/safeDir;
+  vec3 lo=min(a,b),hi=max(a,b);
+  float enter=max(0.,max(lo.x,max(lo.y,lo.z))),leave=min(hi.x,min(hi.y,hi.z));
+  vec2 uv=gl_FragCoord.xy/uResolution;
+  float depth=texture(uDepth,uv).r;
+  vec4 world=uInvVP*vec4(uv*2.-1.,depth*2.-1.,1.);
+  world/=world.w;
+  leave=min(leave,length(world.xyz-uEye));
+  if(leave<=enter)discard;
+  float radialSpeed=max(dot(dir.xz,dir.xz),.00001);
+  float center=-dot(ro.xz,dir.xz)/radialSpeed;
+  float closest=clamp(center,enter,leave);
+  vec3 pc=ro+dir*closest;
+  float hc=clamp(pc.y/vLength,0.,1.);
+  float radius=.027+.115*hc;
+  float width=3.5/(radius*radius);
+  float perpendicular=max(0.,dot(ro.xz,ro.xz)-pow(dot(ro.xz,dir.xz),2.)/radialSpeed);
+  float root=sqrt(width*radialSpeed);
+  float integral=exp(-width*perpendicular)*.886227/root*(erfApprox(root*(leave-center))-erfApprox(root*(enter-center)));
+  float shocks=.75+.25*pow(.5+.5*cos(pc.y*38.-uTime*1.3),4.);
+  vec3 col=vec3(.19,1.3,2.8)*integral*14.*pow(1.-hc,1.3)*shocks;
+  col+=vec3(2.2,2.6,2.8)*integral*9.*pow(1.-hc,4.);
+  float dt=(leave-enter)/20.;
+  for(int i=0;i<20;i++) {
+    vec3 p=ro+dir*(enter+(float(i)+.5)*dt);
+    float h=clamp(p.y/vLength,0.,1.);
+    float spread=.045+.36*h;
+    float turbulence=noise3(vec3(p.x*16.,p.y*9.-uTime*6.,p.z*16.)+vPhase*7.);
+    float r=length(p.xz+vec2(sin(p.y*9.+uTime*1.7),cos(p.y*11.-uTime*1.3))*.07*h);
+    float halo=exp(-r*r/(spread*spread)*1.8);
+    float fade=pow(1.-h,1.5)*smoothstep(0.,.015,h);
+    col+=vec3(.035,.30,.72)*halo*fade*(.15+turbulence*turbulence)*dt*7.;
+  }
+  outColor=vec4(col,0.);
+}`;
+        const jetProgram = program(jetVertex, jetFragment);
+        const box = [];
+        const corners = [
+          [-1, 0, -1],
+          [1, 0, -1],
+          [1, 1, -1],
+          [-1, 1, -1],
+          [-1, 0, 1],
+          [1, 0, 1],
+          [1, 1, 1],
+          [-1, 1, 1],
+        ];
+        for (const face of [
+          [0, 3, 2, 1],
+          [4, 5, 6, 7],
+          [0, 4, 7, 3],
+          [1, 2, 6, 5],
+          [3, 7, 6, 2],
+          [0, 1, 5, 4],
+        ])
+          for (const i of [0, 1, 2, 0, 2, 3]) box.push(...corners[face[i]]);
+        const jetVao = gl.createVertexArray();
+        gl.bindVertexArray(jetVao);
+        const boxBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, boxBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(box), gl.STATIC_DRAW);
+        gl.enableVertexAttribArray(0);
+        gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 12, 0);
+        instances();
+        gl.bindVertexArray(null);
+        const bloomFragment = `#version 300 es
+precision highp float;
+in vec2 vUv;
+uniform sampler2D uTexture;
+uniform vec2 uStep;
+uniform float uExtract;
+out vec4 outColor;
+void main() {
+  vec3 sum=vec3(0);
+  for(int i=-5;i<=5;i++) {
+    vec3 c=texture(uTexture,vUv+uStep*float(i)).rgb;
+    if(uExtract>.5)c=max(c-vec3(.48),0.);
+    float weight=exp(-float(i*i)/12.);
+    sum+=c*weight;
+  }
+  outColor=vec4(sum/6.0,1.);
+}`;
+        const bloomProgram = program(vertex, bloomFragment);
+        const finalFragment = `#version 300 es
+precision highp float;
+in vec2 vUv;
+uniform sampler2D uScene;
+uniform sampler2D uBloom;
+uniform sampler2D uWide;
+uniform vec2 uResolution;
+uniform float uTime;
+out vec4 outColor;
+vec3 aces(vec3 x) {
+  return clamp((x*(2.51*x+.03))/(x*(2.43*x+.59)+.14),0.,1.);
+}
+void main() {
+  vec2 uv=vUv;
+  vec2 radial=uv-.5;
+  vec2 offset=radial*dot(radial,radial)*.0016;
+  vec3 c=texture(uScene,uv).rgb;
+  c.r=texture(uScene,uv+offset).r;
+  c.b=texture(uScene,uv-offset).b;
+  c+=texture(uBloom,uv).rgb*.48+texture(uWide,uv).rgb*.42;
+  float vignette=1.-dot(radial*vec2(1.,.75),radial*vec2(1.,.75))*.85;
+  c*=vignette;
+  c=aces(c*1.35);
+  c=pow(c,vec3(1./2.2));
+  float grain=fract(sin(dot(gl_FragCoord.xy+fract(uTime)*531.,vec2(12.9898,78.233)))*43758.5453)-.5;
+  c+=grain*.012;
+  outColor=vec4(c,1.);
+}`;
+        const finalProgram = program(vertex, finalFragment);
+        const combineProgram = program(
+          vertex,
+          `#version 300 es
+precision highp float;in vec2 vUv;uniform sampler2D uScene;uniform sampler2D uJets;out vec4 outColor;
+void main(){outColor=vec4(texture(uScene,vUv).rgb+texture(uJets,vUv).rgb,1.);}`,
+        );
+        let sceneTarget,
+          compositeTarget,
+          jetTarget,
+          bloomA,
+          bloomB,
+          wideA,
+          wideB,
+          depthTexture;
+        const targets = [];
+        function newTarget(width, height, depth = false) {
+          const framebuffer = gl.createFramebuffer(),
+            texture = gl.createTexture();
+          gl.bindTexture(gl.TEXTURE_2D, texture);
+          gl.texImage2D(
+            gl.TEXTURE_2D,
+            0,
+            hdr ? gl.RGBA16F : gl.RGBA8,
+            width,
+            height,
+            0,
+            gl.RGBA,
+            hdr ? gl.HALF_FLOAT : gl.UNSIGNED_BYTE,
+            null,
+          );
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+          gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+          gl.framebufferTexture2D(
+            gl.FRAMEBUFFER,
+            gl.COLOR_ATTACHMENT0,
+            gl.TEXTURE_2D,
+            texture,
+            0,
+          );
+          let depthBuffer = null;
+          if (depth) {
+            depthBuffer = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, depthBuffer);
+            gl.texImage2D(
+              gl.TEXTURE_2D,
+              0,
+              gl.DEPTH_COMPONENT24,
+              width,
+              height,
+              0,
+              gl.DEPTH_COMPONENT,
+              gl.UNSIGNED_INT,
+              null,
+            );
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            gl.texParameteri(
+              gl.TEXTURE_2D,
+              gl.TEXTURE_WRAP_S,
+              gl.CLAMP_TO_EDGE,
+            );
+            gl.texParameteri(
+              gl.TEXTURE_2D,
+              gl.TEXTURE_WRAP_T,
+              gl.CLAMP_TO_EDGE,
+            );
+            gl.framebufferTexture2D(
+              gl.FRAMEBUFFER,
+              gl.DEPTH_ATTACHMENT,
+              gl.TEXTURE_2D,
+              depthBuffer,
+              0,
+            );
+          }
+          if (
+            gl.checkFramebufferStatus(gl.FRAMEBUFFER) !==
+            gl.FRAMEBUFFER_COMPLETE
+          )
+            throw new Error(
+              "显卡无法创建渲染缓冲区。请尝试更新浏览器或显卡驱动。",
+            );
+          const target = {
+            framebuffer,
+            texture,
+            depth: depthBuffer,
+            width,
+            height,
+          };
+          targets.push(target);
+          return target;
+        }
+        function resize() {
+          if (state.recording && sceneTarget) return;
+          const maxRatio =
+            state.quality === 2 ? 2 : state.quality === 1 ? 0.75 : 1.25;
+          const pixelLimit =
+            state.quality === 0
+              ? Math.min(1, Math.sqrt(921600 / (innerWidth * innerHeight)))
+              : 1;
+          const ratio =
+            Math.min(devicePixelRatio, maxRatio) * state.scale * pixelLimit;
+          const w = Math.max(1, Math.round(innerWidth * ratio)),
+            h = Math.max(1, Math.round(innerHeight * ratio));
+          if (canvas.width === w && canvas.height === h && sceneTarget) return;
+          canvas.width = w;
+          canvas.height = h;
+          for (const t of targets) {
+            gl.deleteTexture(t.texture);
+            gl.deleteTexture(t.depth);
+            gl.deleteFramebuffer(t.framebuffer);
+          }
+          targets.length = 0;
+          sceneTarget = newTarget(w, h, true);
+          depthTexture = sceneTarget.depth;
+          compositeTarget = newTarget(w, h);
+          jetTarget = newTarget(Math.max(1, w >> 1), Math.max(1, h >> 1));
+          bloomA = newTarget(Math.max(1, w >> 2), Math.max(1, h >> 2));
+          bloomB = newTarget(bloomA.width, bloomA.height);
+          wideA = newTarget(Math.max(1, w >> 4), Math.max(1, h >> 4));
+          wideB = newTarget(wideA.width, wideA.height);
+        }
+        function multiply(a, b) {
+          const result = new Float32Array(16);
+          for (let c = 0; c < 4; c++)
+            for (let r = 0; r < 4; r++)
+              for (let k = 0; k < 4; k++)
+                result[c * 4 + r] += a[k * 4 + r] * b[c * 4 + k];
+          return result;
+        }
+        function inverse(m) {
+          const a = Array.from({ length: 4 }, (_, r) => [
+            ...Array.from({ length: 4 }, (_, c) => m[c * 4 + r]),
+            ...Array.from({ length: 4 }, (_, c) => (r === c ? 1 : 0)),
+          ]);
+          for (let c = 0; c < 4; c++) {
+            let best = c;
+            for (let r = c + 1; r < 4; r++)
+              if (Math.abs(a[r][c]) > Math.abs(a[best][c])) best = r;
+            [a[c], a[best]] = [a[best], a[c]];
+            const divisor = a[c][c];
+            for (let k = 0; k < 8; k++) a[c][k] /= divisor;
+            for (let r = 0; r < 4; r++)
+              if (r !== c) {
+                const f = a[r][c];
+                for (let k = 0; k < 8; k++) a[r][k] -= f * a[c][k];
+              }
+          }
+          return new Float32Array(
+            Array.from(
+              { length: 16 },
+              (_, i) => a[i % 4][4 + Math.floor(i / 4)],
+            ),
+          );
+        }
+        function cameraAt(t) {
+          const retreat = smooth(15, 32, t);
+          const drift = smooth(0, 13, t);
+          let eye = [mix(1.4, 0.53, drift), 0, mix(2.75, 1.2, drift)];
+          eye[1] = Math.sqrt(8.34 * 8.34 - eye[0] * eye[0] - eye[2] * eye[2]);
+          let target = [0, 8.02, -2.4];
+          const portrait = Math.max(1, (canvas.height / canvas.width) * 0.95);
+          const far = [
+            mix(7.5, 12, smooth(28, 42, t)) * portrait,
+            13.5 * portrait,
+            22 * portrait,
+          ];
+          eye = eye.map((v, i) => mix(v, far[i], retreat));
+          target = target.map((v, i) => mix(v, [-2.6, 3.2, 0][i], retreat));
+          if (state.preview && portrait === 1) target[0] -= 2.8;
+          let delta = vsub(eye, target);
+          const radius = Math.hypot(...delta) * Math.exp(state.zoom * 0.25);
+          let theta = Math.atan2(delta[0], delta[2]) + state.yaw;
+          let phi =
+            Math.acos(clamp(delta[1] / Math.hypot(...delta), -0.99, 0.99)) +
+            state.pitch;
+          phi = clamp(phi, 0.12, Math.PI - 0.12);
+          eye = vadd(target, [
+            radius * Math.sin(phi) * Math.sin(theta),
+            radius * Math.cos(phi),
+            radius * Math.sin(phi) * Math.cos(theta),
+          ]);
+          const minRadius = 8.3;
+          if (Math.hypot(...eye) < minRadius) eye = vmul(norm(eye), minRadius);
+          const shake = smooth(11, 12.5, t) * (1 - smooth(13, 17, t)) * 0.004;
+          eye[0] += Math.sin(t * 67) * shake;
+          eye[1] += Math.cos(t * 83) * shake;
+          const backward = norm(vsub(eye, target)),
+            right = norm(cross([0, 1, 0], backward)),
+            up = cross(backward, right);
+          const basis = new Float32Array([...right, ...up, ...backward]);
+          const view = new Float32Array([
+            right[0],
+            up[0],
+            backward[0],
+            0,
+            right[1],
+            up[1],
+            backward[1],
+            0,
+            right[2],
+            up[2],
+            backward[2],
+            0,
+            -dot(right, eye),
+            -dot(up, eye),
+            -dot(backward, eye),
+            1,
+          ]);
+          const f = 1.65,
+            aspect = canvas.width / canvas.height,
+            near = 0.012,
+            farClip = 600;
+          const projection = new Float32Array([
+            f / aspect,
+            0,
+            0,
+            0,
+            0,
+            f,
+            0,
+            0,
+            0,
+            0,
+            (farClip + near) / (near - farClip),
+            -1,
+            0,
+            0,
+            (2 * farClip * near) / (near - farClip),
+            0,
+          ]);
+          return { eye, basis, vp: multiply(projection, view) };
+        }
+        function bindTarget(t) {
+          gl.bindFramebuffer(gl.FRAMEBUFFER, t ? t.framebuffer : null);
+          gl.viewport(
+            0,
+            0,
+            t ? t.width : canvas.width,
+            t ? t.height : canvas.height,
+          );
+        }
+        function fullscreen(p) {
+          gl.useProgram(p.program);
+          gl.bindVertexArray(null);
+          gl.drawArrays(gl.TRIANGLES, 0, 3);
+        }
+        function blur(source, target, dx, dy, extract) {
+          bindTarget(target);
+          gl.useProgram(bloomProgram.program);
+          textureUniform(bloomProgram, "uTexture", source.texture, 0);
+          uniform(bloomProgram, "uStep", [
+            dx / source.width,
+            dy / source.height,
+          ]);
+          uniform(bloomProgram, "uExtract", extract);
+          fullscreen(bloomProgram);
+        }
+        let lastCamera = null;
+        function render(t) {
+          resize();
+          const cam = cameraAt(t);
+          lastCamera = cam;
+          const eclipse = smooth(3, 10, t);
+          const sun = norm([mix(0.44, -0.12, eclipse), 0.27, -1]);
+          function setSceneUniforms(p) {
+            gl.useProgram(p.program);
+            uniform(p, "uResolution", [canvas.width, canvas.height]);
+            uniform(p, "uTime", t);
+            uniform(p, "uEye", cam.eye);
+            uniform(p, "uCamera", cam.basis);
+            uniform(p, "uVP", cam.vp);
+            uniform(p, "uSun", sun);
+            uniform(p, "uEclipse", eclipse);
+          }
+          bindTarget(sceneTarget);
+          gl.disable(gl.BLEND);
+          gl.enable(gl.DEPTH_TEST);
+          gl.depthMask(true);
+          gl.depthFunc(gl.ALWAYS);
+          gl.clearColor(0, 0, 0, 1);
+          gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+          setSceneUniforms(sceneProgram);
+          gl.activeTexture(gl.TEXTURE3);
+          gl.bindTexture(gl.TEXTURE_CUBE_MAP, terrainMap);
+          gl.uniform1i(
+            gl.getUniformLocation(sceneProgram.program, "uTerrain"),
+            3,
+          );
+          gl.activeTexture(gl.TEXTURE4);
+          gl.bindTexture(gl.TEXTURE_CUBE_MAP, gasMap);
+          gl.uniform1i(gl.getUniformLocation(sceneProgram.program, "uGas"), 4);
+          fullscreen(sceneProgram);
+          gl.depthFunc(gl.LESS);
+          setSceneUniforms(engineProgram);
+          gl.bindVertexArray(engineVao);
+          gl.drawArraysInstanced(
+            gl.TRIANGLES,
+            0,
+            engineVertices.length / 7,
+            instanceCount,
+          );
+          bindTarget(jetTarget);
+          gl.clearColor(0, 0, 0, 0);
+          gl.clear(gl.COLOR_BUFFER_BIT);
+          gl.disable(gl.DEPTH_TEST);
+          gl.depthMask(false);
+          gl.enable(gl.BLEND);
+          gl.blendFunc(gl.ONE, gl.ONE);
+          gl.enable(gl.CULL_FACE);
+          gl.cullFace(gl.FRONT);
+          setSceneUniforms(jetProgram);
+          uniform(jetProgram, "uResolution", [
+            jetTarget.width,
+            jetTarget.height,
+          ]);
+          uniform(jetProgram, "uInvVP", inverse(cam.vp));
+          textureUniform(jetProgram, "uDepth", depthTexture, 0);
+          gl.bindVertexArray(jetVao);
+          gl.drawArraysInstanced(
+            gl.TRIANGLES,
+            0,
+            box.length / 3,
+            instanceCount,
+          );
+          gl.disable(gl.CULL_FACE);
+          gl.disable(gl.BLEND);
+          gl.bindVertexArray(null);
+          bindTarget(compositeTarget);
+          gl.useProgram(combineProgram.program);
+          textureUniform(combineProgram, "uScene", sceneTarget.texture, 0);
+          textureUniform(combineProgram, "uJets", jetTarget.texture, 1);
+          fullscreen(combineProgram);
+          blur(compositeTarget, bloomA, 2, 0, 1);
+          blur(bloomA, bloomB, 0, 1, 0);
+          blur(bloomB, bloomA, 1, 0, 0);
+          blur(bloomA, wideA, 2, 0, 0);
+          blur(wideA, wideB, 0, 1, 0);
+          blur(wideB, wideA, 1, 0, 0);
+          bindTarget(null);
+          gl.useProgram(finalProgram.program);
+          textureUniform(finalProgram, "uScene", compositeTarget.texture, 0);
+          textureUniform(finalProgram, "uBloom", bloomA.texture, 1);
+          textureUniform(finalProgram, "uWide", wideA.texture, 2);
+          uniform(finalProgram, "uTime", t);
+          uniform(finalProgram, "uResolution", [canvas.width, canvas.height]);
+          fullscreen(finalProgram);
+          gl.depthMask(true);
+        }
+        // A synthesized score: bowed harmonics, sub-bass, filtered wind and an ignition swell.
+        let audio = null;
+        function initAudio() {
+          if (audio) return audio;
+          const Context = window.AudioContext || window.webkitAudioContext;
+          if (!Context) return null;
+          const context = new Context();
+          const master = context.createGain();
+          master.gain.value = 0;
+          const compressor = context.createDynamicsCompressor();
+          compressor.threshold.value = -12;
+          compressor.knee.value = 18;
+          compressor.ratio.value = 4;
+          master.connect(compressor);
+          compressor.connect(context.destination);
+          const destination = context.createMediaStreamDestination();
+          compressor.connect(destination);
+          const reverb = context.createConvolver(),
+            impulse = context.createBuffer(
+              2,
+              context.sampleRate * 3.5,
+              context.sampleRate,
+            );
+          let audioSeed = 591;
+          for (let channel = 0; channel < 2; channel++) {
+            const samples = impulse.getChannelData(channel);
+            for (let i = 0; i < samples.length; i++) {
+              audioSeed = (Math.imul(audioSeed, 1664525) + 1013904223) | 0;
+              samples[i] =
+                ((audioSeed >>> 0) / 2147483648 - 1) *
+                Math.pow(1 - i / samples.length, 3.8);
+            }
+          }
+          reverb.buffer = impulse;
+          const reverbGain = context.createGain();
+          reverbGain.gain.value = 0.25;
+          reverb.connect(reverbGain);
+          reverbGain.connect(master);
+          const notes = [43.65, 65.406, 87.307, 103.826, 130.813, 261.626];
+          const voices = notes.map((frequency, i) => {
+            const oscillator = context.createOscillator(),
+              gain = context.createGain(),
+              pan = context.createStereoPanner();
+            oscillator.type = i < 2 ? "sine" : "triangle";
+            oscillator.frequency.value = frequency;
+            oscillator.detune.value = (i % 2 ? 1 : -1) * 3;
+            pan.pan.value = i < 2 ? 0 : i % 2 ? 0.45 : -0.45;
+            gain.gain.value = 0;
+            oscillator.connect(gain);
+            gain.connect(pan);
+            pan.connect(master);
+            gain.connect(reverb);
+            oscillator.start();
+            return { gain, oscillator };
+          });
+          const buffer = context.createBuffer(
+              1,
+              context.sampleRate * 4,
+              context.sampleRate,
+            ),
+            data = buffer.getChannelData(0);
+          let brown = 0;
+          let seed = 34907;
+          for (let i = 0; i < data.length; i++) {
+            seed = (Math.imul(seed, 1664525) + 1013904223) | 0;
+            const white = ((seed >>> 0) / 4294967296) * 2 - 1;
+            brown = (brown + white * 0.025) / 1.025;
+            data[i] = brown * 3;
+          }
+          const wind = context.createBufferSource();
+          wind.buffer = buffer;
+          wind.loop = true;
+          const filter = context.createBiquadFilter();
+          filter.type = "lowpass";
+          filter.frequency.value = 250;
+          const windGain = context.createGain();
+          windGain.gain.value = 0;
+          wind.connect(filter);
+          filter.connect(windGain);
+          windGain.connect(master);
+          wind.start();
+          audio = { context, master, voices, windGain, filter, destination };
+          return audio;
+        }
+        function audioUpdate(t) {
+          if (!audio) return;
+          const now = audio.context.currentTime;
+          const active = !state.muted && state.playing && !document.hidden;
+          audio.master.gain.setTargetAtTime(active ? 0.62 : 0, now, 0.12);
+          const ignition = smooth(9, 16, t);
+          const release = smooth(27, 34, t);
+          const chords = [
+            [43.65, 65.406, 87.307, 103.826, 130.813, 261.626],
+            [34.648, 51.913, 69.296, 87.307, 103.826, 207.652],
+            [38.891, 58.27, 77.782, 98, 116.541, 233.082],
+            [43.65, 65.406, 87.307, 103.826, 130.813, 261.626],
+          ];
+          const chord = t < 14 ? 0 : t < 24 ? 1 : t < 32 ? 2 : 3;
+          audio.voices.forEach((voice, i) => {
+            let gain = i < 2 ? 0.12 : 0.02;
+            gain *= 0.35 + ignition * 0.8;
+            gain *= i > 3 ? 0.15 + release * 0.85 : 1;
+            gain *= 1 - smooth(39, 42, t);
+            voice.gain.gain.setTargetAtTime(gain, now, 0.16);
+            voice.oscillator.frequency.setTargetAtTime(
+              chords[chord][i],
+              now,
+              0.35,
+            );
+          });
+          const impact = Math.exp(-Math.pow((t - 12.6) * 2.5, 2));
+          audio.windGain.gain.setTargetAtTime(
+            (0.12 + ignition * 0.48 + impact * 0.5) *
+              (1 - release * 0.8) *
+              (1 - smooth(39, 42, t)),
+            now,
+            0.2,
+          );
+          audio.filter.frequency.setTargetAtTime(
+            170 + ignition * 800 + impact * 1100 - release * 500,
+            now,
+            0.2,
+          );
+        }
+        function setSound(enabled) {
+          const a = initAudio();
+          if (!a) {
+            toast("这个浏览器暂不支持合成音频");
+            return;
+          }
+          a.context.resume();
+          state.muted = !enabled;
+          ui.sound.textContent = enabled ? "声音 · 开" : "声音 · 关";
+          ui.sound.setAttribute("aria-pressed", String(enabled));
+          audioUpdate(state.time);
+        }
+        function updateUI() {
+          ui.seek.value = state.time;
+          ui.clock.textContent = `00:${String(Math.floor(state.time)).padStart(2, "0")} / 00:42`;
+          ui.play.textContent = state.playing ? "暂停" : "播放";
+          ui.caption.classList.toggle(
+            "visible",
+            !state.preview && state.time > 35 && state.time < 41.5,
+          );
+        }
+        function start() {
+          state.preview = false;
+          state.time = 0;
+          state.playing = true;
+          state.yaw = 0;
+          state.pitch = 0;
+          state.zoom = 0;
+          document.body.classList.add("playing");
+          updateUI();
+        }
+        ui.enter.onclick = () => {
+          setSound(true);
+          start();
+        };
+        ui.play.onclick = () => {
+          if (state.preview || state.time >= DURATION) start();
+          else state.playing = !state.playing;
+          updateUI();
+        };
+        ui.restart.onclick = () => {
+          if (state.recording) return;
+          start();
+        };
+        ui.sound.onclick = () => setSound(state.muted);
+        ui.seek.oninput = () => {
+          if (state.recording) return;
+          state.preview = false;
+          document.body.classList.add("playing");
+          state.time = Number(ui.seek.value);
+          updateUI();
+        };
+        function toggleFullscreen() {
+          if (document.fullscreenElement)
+            document.exitFullscreen().catch(() => {});
+          else
+            document.documentElement
+              .requestFullscreen?.()
+              .catch(() => toast("浏览器暂时无法进入全屏"));
+        }
+        ui.fullscreen.onclick = toggleFullscreen;
+        ui.hide.onclick = () => {
+          document.body.classList.add("clean");
+          toast("按 H 恢复界面");
+        };
+        ui.quality.onclick = () => {
+          state.quality = (state.quality + 1) % 3;
+          state.scale = 1;
+          ui.quality.textContent = [
+            "画质 · 自动",
+            "画质 · 流畅",
+            "画质 · 精细",
+          ][state.quality];
+        };
+        let pointer = null;
+        canvas.onpointerdown = (e) => {
+          if (state.recording) return;
+          pointer = [e.clientX, e.clientY];
+          state.dragging = true;
+          canvas.setPointerCapture(e.pointerId);
+        };
+        canvas.onpointermove = (e) => {
+          if (!pointer) return;
+          state.yaw += (e.clientX - pointer[0]) * 0.0025;
+          state.pitch = clamp(
+            state.pitch + (e.clientY - pointer[1]) * 0.002,
+            -0.55,
+            0.55,
+          );
+          pointer = [e.clientX, e.clientY];
+        };
+        canvas.onpointerup = canvas.onpointercancel = () => {
+          pointer = null;
+          state.dragging = false;
+        };
+        canvas.addEventListener(
+          "wheel",
+          (e) => {
+            e.preventDefault();
+            if (!state.recording)
+              state.zoom = clamp(state.zoom + e.deltaY * 0.001, -1.4, 1.4);
+          },
+          { passive: false },
+        );
+        window.addEventListener("keydown", (e) => {
+          if (e.target instanceof HTMLInputElement) return;
+          if (e.code === "Space") {
+            e.preventDefault();
+            if (!state.recording) ui.play.click();
+          }
+          if (e.code === "KeyH") document.body.classList.toggle("clean");
+          if (e.code === "KeyF") toggleFullscreen();
+          if (e.code === "KeyR") ui.restart.click();
+          if (e.code === "KeyM") ui.sound.click();
+        });
+        let recorder = null,
+          recordingChunks = [],
+          recordingWasClean = false,
+          recordingWasMuted = true;
+        function stopRecording() {
+          if (recorder?.state === "recording") recorder.stop();
+        }
+        ui.record.onclick = () => {
+          if (state.recording) {
+            stopRecording();
+            return;
+          }
+          if (!canvas.captureStream || !window.MediaRecorder) {
+            toast("此浏览器暂不支持录制，请使用 Chrome 或 Edge");
+            return;
+          }
+          try {
+            const a = initAudio();
+            a?.context.resume();
+            const stream = canvas.captureStream(30);
+            if (a)
+              for (const track of a.destination.stream.getAudioTracks())
+                stream.addTrack(track);
+            const mime = [
+              "video/mp4;codecs=avc1.42001e,mp4a.40.2",
+              "video/mp4",
+              "video/webm;codecs=vp9,opus",
+              "video/webm;codecs=vp8,opus",
+              "video/webm",
+            ].find((type) => MediaRecorder.isTypeSupported(type));
+            if (!mime) throw new Error("浏览器没有可用的视频编码器");
+            recorder = new MediaRecorder(stream, {
+              mimeType: mime,
+              videoBitsPerSecond: 12000000,
+            });
+            recordingChunks = [];
+            recorder.ondataavailable = (e) => {
+              if (e.data.size) recordingChunks.push(e.data);
+            };
+            recorder.onstop = () => {
+              const blob = new Blob(recordingChunks, { type: mime });
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement("a");
+              link.href = url;
+              link.download = mime.startsWith("video/mp4")
+                ? "Eclipse-Window.mp4"
+                : "Eclipse-Window.webm";
+              link.click();
+              setTimeout(() => URL.revokeObjectURL(url), 60000);
+              stream.getVideoTracks().forEach((track) => track.stop());
+              state.recording = false;
+              document.body.classList.remove("recording");
+              document.body.classList.toggle("clean", recordingWasClean);
+              setSound(!recordingWasMuted);
+              ui.record.textContent = "录制影片";
+              ui.seek.disabled = false;
+              ui.play.disabled = false;
+              toast("影片已导出，画面与合成配乐均由代码生成");
+            };
+            recordingWasClean = document.body.classList.contains("clean");
+            recordingWasMuted = state.muted;
+            setSound(true);
+            start();
+            render(0);
+            recorder.start(1000);
+            state.recording = true;
+            document.body.classList.add("clean", "recording");
+            ui.record.textContent = "结束录制";
+            ui.seek.disabled = true;
+            ui.play.disabled = true;
+            toast("正在录制 42 秒影片，请保持此页面在前台");
+          } catch (error) {
+            toast("录制未能启动，请使用系统录屏。" + error.message);
+          }
+        };
+        document.addEventListener("visibilitychange", () => {
+          lastTime = performance.now();
+          if (document.hidden && state.recording) stopRecording();
+          audioUpdate(state.time);
+        });
+        canvas.addEventListener("webglcontextlost", (e) => {
+          e.preventDefault();
+          state.disposed = true;
+          stopRecording();
+          audio?.context.suspend();
+          showError("显卡上下文已中断。请关闭占用显卡的程序后重新载入。");
+        });
+        window.addEventListener("pagehide", () => {
+          state.disposed = true;
+          stopRecording();
+          audio?.context.close();
+        });
+        let lastTime = performance.now(),
+          performanceWindow = [],
+          frameCounter = 0;
+        function tick(now) {
+          if (state.disposed) return;
+          const dt = Math.min((now - lastTime) / 1000, 0.5);
+          lastTime = now;
+          if (!document.hidden) {
+            if (state.playing) {
+              state.time = Math.min(DURATION, state.time + dt);
+              if (state.time >= DURATION) {
+                state.playing = false;
+                stopRecording();
+              }
+            }
+            const renderTime = state.preview
+              ? 29 + Math.sin(now * 0.0001) * 0.5
+              : state.time;
+            try {
+              render(renderTime);
+            } catch (error) {
+              console.error(error);
+              showError(error.message);
+              state.disposed = true;
+              return;
+            }
+            audioUpdate(state.time);
+            updateUI();
+            document.body.classList.add("ready");
+            frameCounter++;
+            if (frameCounter > 15 && state.quality === 0 && !state.recording) {
+              performanceWindow.push(dt);
+              if (performanceWindow.length >= 30) {
+                const average =
+                  performanceWindow.reduce((s, x) => s + x, 0) /
+                  performanceWindow.length;
+                if (average > 0.038 && state.scale > 0.5)
+                  state.scale = Math.max(0.5, state.scale * 0.8);
+                performanceWindow = [];
+              }
+            }
+          }
+          requestAnimationFrame(tick);
+        }
+        // Deterministic inspection entry point, also useful for choosing a cover frame.
+        window.eclipse = {
+          state,
+          seek(time) {
+            state.preview = false;
+            state.playing = false;
+            state.time = clamp(time, 0, DURATION);
+            document.body.classList.add("playing");
+            render(state.time);
+            updateUI();
+          },
+          render: () => render(state.preview ? 29 : state.time),
+          get camera() {
+            return lastCamera;
+          },
+          get resolution() {
+            return [canvas.width, canvas.height];
+          },
+          get engineCount() {
+            return instanceCount;
+          },
+        };
+        requestAnimationFrame(tick);
+      }
+    </script>
+  </body>
+</html>
